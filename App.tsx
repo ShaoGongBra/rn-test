@@ -31,20 +31,6 @@ function App(): React.JSX.Element {
         backgroundColor={backgroundStyle.backgroundColor}
       />
       <ScrollView>
-        {/* <View
-          style={{
-            backgroundColor: '#000',
-            height: 300,
-            paddingTop: 200,
-            paddingLeft: 200
-          }}>
-          <View style={{
-            position: 'absolute',
-            // width height 100%会排除父元素的padding
-            width: '100%', height: '100%', left: 0, top: 0,
-            backgroundColor: '#666'
-          }} />
-        </View> */}
         <View>
           <Text>WifiIcon</Text>
           <WifiIcon name='namecard' size={24} color='#333' />
