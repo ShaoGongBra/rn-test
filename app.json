@@ -1,4 +1,18 @@
 {
   "name": "duxapp",
-  "displayName": "duxapp"
+  "displayName": "duxapp",
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "553c710c-b696-48da-a4d7-9b08b7393979"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/553c710c-b696-48da-a4d7-9b08b7393979"
+    },
+    "android": {
+      "runtimeVersion": "1.0.0"
+    },
+    "ios": {}
+  }
 }

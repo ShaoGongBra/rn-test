@@ -1,51 +1,51 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-import { ExpIcon } from './ExpIcon';
-import { WifiIcon } from './WifiIcon';
+import { Alert, StatusBar } from 'react-native';
+import * as Updates from 'expo-updates';
+import { useEffect } from 'react';
+import { Button, Text, View } from 'react-native';
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+export default function UpdatesDemo() {
+  const {
+    currentlyRunning,
+    isUpdateAvailable,
+    isUpdatePending
+  } = Updates.useUpdates();
 
-  const backgroundStyle = {
-    backgroundColor: '#eee',
-  };
+  useEffect(() => {
+    if (isUpdatePending) {
+      // Update has successfully downloaded; apply it now
+      Updates.reloadAsync();
+    }
+  }, [isUpdatePending]);
+
+  // If true, we show the button to download and run the update
+  const showDownloadButton = isUpdateAvailable;
+
+  // Show whether or not we are running embedded code or an update
+  const runTypeMessage = currentlyRunning.isEmbeddedLaunch
+    ? 'This app is running from built-in code'
+    : 'This app is running an update';
 
   return (
-    <SafeAreaView style={backgroundStyle}>
+    <View style={{}}>
       <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
+        barStyle={'dark-content'}
+        backgroundColor="#eee"
       />
-      <ScrollView>
-        <View>
-          <Text>WifiIcon</Text>
-          <WifiIcon name='namecard' size={24} color='#333' />
-          <WifiIcon name='date' size={24} color='#333' />
-          <WifiIcon name='help_FAQ' size={24} color='#333' />
-        </View>
-        <View>
-          <Text>ExpIcon</Text>
-          <ExpIcon name='dizhibu' size={24} color='#333' />
-          <ExpIcon name='gift' size={24} color='#333' />
-          <ExpIcon name='dizhibu' size={24} color='#333' />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      <Text style={{}}>热更新示例</Text>
+      <Text>{runTypeMessage}</Text>
+      <Text>test888</Text>
+      <Button onPress={() => {
+        Updates.checkForUpdateAsync().then(res => {
+          Alert.alert('then', JSON.stringify(res))
+        }).catch(err => {
+          console.log(err)
+          Alert.alert('catch', err.message)
+        })
+      }} title="检查更新" />
+      {showDownloadButton ? (
+        <Button onPress={() => Updates.fetchUpdateAsync()} title="下载并更新" />
+      ) : null}
+    </View>
   );
 }
-
-export default App;
