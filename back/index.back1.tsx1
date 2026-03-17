@@ -2,7 +2,7 @@ import { SkiaPictureView, type SkPicture } from '@shopify/react-native-skia';
 import { useEffect, useRef } from 'react';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 
-import { createSkiaFrame, updateFps } from './lib/simpleBenchmark';
+import { SkiaBenchmarkRenderer, createBenchmarkPicture } from './lib/skiaBenchmark';
 
 type SkiaViewApiLike = {
   setJsiProperty: (nativeId: number, name: string, value: unknown) => void;
@@ -18,9 +18,19 @@ const setPicture = (nativeId: number, picture: SkPicture) => {
 
 export default function HomeScreen() {
   const { width, height } = useWindowDimensions();
+  const rendererRef = useRef<SkiaBenchmarkRenderer | null>(null);
   const viewRef = useRef<SkiaPictureView | null>(null);
-  const pictureRef = useRef<SkPicture | null>(createSkiaFrame({ width, height }, 0, 0));
-  const fpsRef = useRef({ fps: 0, frameCount: 0, lastTime: 0 });
+  const initialPictureRef = useRef<SkPicture | null>(null);
+  const currentPictureRef = useRef<SkPicture | null>(null);
+
+  if (!rendererRef.current) {
+    rendererRef.current = new SkiaBenchmarkRenderer();
+  }
+
+  if (!initialPictureRef.current) {
+    initialPictureRef.current = createBenchmarkPicture(width, height, 1, 0);
+    currentPictureRef.current = initialPictureRef.current;
+  }
 
   useEffect(() => {
     let active = true;
@@ -31,15 +41,16 @@ export default function HomeScreen() {
         return;
       }
 
-      fpsRef.current = updateFps(fpsRef.current, now);
-
       const view = viewRef.current;
-      if (view) {
-        const nextPicture = createSkiaFrame({ width, height }, now, fpsRef.current.fps);
-        setPicture(view.nativeId, nextPicture);
+      const renderer = rendererRef.current;
+      if (view && renderer) {
+        const picture = renderer.render({ width, height }, now);
+        setPicture(view.nativeId, picture);
         view.redraw();
-        pictureRef.current?.dispose?.();
-        pictureRef.current = nextPicture;
+        if (currentPictureRef.current && currentPictureRef.current !== picture) {
+          currentPictureRef.current.dispose?.();
+        }
+        currentPictureRef.current = picture;
       }
 
       frameId = requestAnimationFrame(render);
@@ -55,15 +66,18 @@ export default function HomeScreen() {
 
   useEffect(() => {
     return () => {
-      pictureRef.current?.dispose?.();
-      pictureRef.current = null;
+      rendererRef.current?.dispose();
+      rendererRef.current = null;
+      currentPictureRef.current?.dispose?.();
+      currentPictureRef.current = null;
+      initialPictureRef.current = null;
     };
   }, []);
 
   return (
     <SkiaPictureView
       ref={viewRef}
-      picture={pictureRef.current ?? undefined}
+      picture={initialPictureRef.current ?? undefined}
       style={styles.canvas}
       collapsable={false}
     />
